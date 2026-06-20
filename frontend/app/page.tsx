@@ -1,22 +1,27 @@
 
-async function getProducts(){
- const res = await fetch(process.env.NEXT_PUBLIC_API_URL+"/products");
- return res.json();
-}
+'use client'
+import {useEffect,useState} from 'react'
 
-export default async function Home(){
- const products = await getProducts();
+export default function Page(){
+ const [products,setProducts]=useState<any[]>([])
+
+ useEffect(()=>{
+  fetch('http://localhost:8000/products/')
+   .then(r=>r.json())
+   .then(setProducts)
+ },[])
+
  return (
-  <main style={{padding:40,fontFamily:'sans-serif'}}>
+  <main style={{fontFamily:'sans-serif',padding:40}}>
    <h1>فروشگاه برنج رمضانی</h1>
-   <div>
-    {products.map((p:any)=>(
-      <div key={p.id} style={{border:'1px solid #ddd',padding:20,margin:10}}>
-        <h3>{p.name}</h3>
-        <p>قیمت: {p.price}</p>
-      </div>
-    ))}
-   </div>
+   {products.map(p=>(
+    <div key={p.id} style={{border:'1px solid #ddd',padding:20,marginTop:20}}>
+     <h2>{p.name}</h2>
+     <p>قیمت هر کیلو: {p.price_per_kg}</p>
+     <p>وزن ها: {p.weights.join('kg , ')}kg</p>
+     <button>افزودن به سبد خرید</button>
+    </div>
+   ))}
   </main>
  )
 }
