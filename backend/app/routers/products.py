@@ -1,14 +1,26 @@
+from fastapi import APIRouter,Depends
+from sqlalchemy.orm import Session
+from ..core.database import SessionLocal
+from ..models.product import Product
+from ..schemas.product import ProductCreate,ProductOut
 
-from fastapi import APIRouter
+router=APIRouter(prefix='/products',tags=['products'])
 
-router=APIRouter()
+def get_db():
+    db=SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-products=[
- {"id":1,"name":"برنج هاشمی","weights":[5,10,20],"price_per_kg":180000},
- {"id":2,"name":"برنج فجر","weights":[5,10,20],"price_per_kg":150000},
- {"id":3,"name":"برنج طارم","weights":[5,10,20],"price_per_kg":200000}
-]
+@router.get('/',response_model=list[ProductOut])
+def list_products(db:Session=Depends(get_db)):
+    return db.query(Product).all()
 
-@router.get('/')
-def list_products():
-    return products
+@router.post('/',response_model=ProductOut)
+def create_product(data:ProductCreate,db:Session=Depends(get_db)):
+    p=Product(**data.dict())
+    db.add(p)
+    db.commit()
+    db.refresh(p)
+    return p
